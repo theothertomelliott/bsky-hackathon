@@ -8,7 +8,7 @@ import { batchFirehose, getFirstTimers } from "./first_timers.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // Create HTTP server
 const server = createServer(async (req, res) => {
