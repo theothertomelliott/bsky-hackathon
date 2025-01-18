@@ -85,38 +85,72 @@
             color: #a94442;
         }
         #controls {
-            margin-bottom: 10px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
         #pause-button {
-            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 16px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
         }
-        #message-counter {
-            margin-left: 10px;
-            display: none;
+        #pause-button:hover {
+            background-color: #e0e0e0;
         }
-        #stats {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: none;
-            text-align: center;
-            font-size: 1.1em;
+        #pause-button.paused {
+            background-color: #007AFF;
+            color: white;
         }
-        .stat-item {
+        #pause-button.paused:hover {
+            background-color: #0056b3;
+        }
+        .spinner {
             display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
         }
-        .stat-label {
-            font-weight: bold;
-            margin-right: 5px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .status-text {
+            color: #666;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+        }
+        #stats {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px auto;
+            display: none;
+            text-align: center;
+            font-size: 1.1em;
+            max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -126,11 +160,18 @@
         <div id="status" class="disconnected">⬤ Disconnected</div>
     </div>
     <div id="stats"></div>
-    <div id="messages"></div>
     <div id="controls">
-        <button id="pause-button">Pause</button>
+        <div class="status-text">
+            <span class="spinner"></span>
+            <span>Waiting for posts...</span>
+        </div>
+        <button id="pause-button">
+            <span class="button-icon">⏸️</span>
+            <span class="button-text">Pause</span>
+        </button>
         <span id="message-counter"></span>
     </div>
+    <div id="messages"></div>
     <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
         <h2>Working with the stream</h2>
         <p>
@@ -210,18 +251,29 @@
 
         pauseButton.addEventListener('click', function() {
             isPaused = !isPaused;
-            pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
+            const statusText = document.querySelector('.status-text');
+            
+            if (isPaused) {
+                pauseButton.innerHTML = '<span class="button-icon">▶️</span><span class="button-text">Resume</span>';
+                pauseButton.classList.add('paused');
+                statusText.style.display = 'none';
+            } else {
+                pauseButton.innerHTML = '<span class="button-icon">⏸️</span><span class="button-text">Pause</span>';
+                pauseButton.classList.remove('paused');
+                statusText.style.display = 'flex';
+            }
+            
             messageCounter.style.display = isPaused ? 'inline' : 'none';
             
             if (!isPaused && messageQueue.length > 0) {
-                // Add all queued messages
-                messageQueue.forEach(addMessageToFeed);
+                // Add all queued messages in reverse order to maintain chronology
+                messageQueue.reverse().forEach(addMessageToFeed);
                 // Clear the queue and counter
                 messageQueue = [];
                 messageCount = 0;
                 messageCounter.textContent = '';
-                // Scroll to bottom after adding all messages
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                // Scroll to top after adding all messages
+                messagesDiv.scrollTop = 0;
             }
         });
 
@@ -250,15 +302,16 @@
                     </a>
                 </div>
             `;
-            messagesDiv.appendChild(messageDiv);
+            // Insert new message at the top
+            messagesDiv.insertBefore(messageDiv, messagesDiv.firstChild);
             
             // Keep only the last 10 messages
             while (messagesDiv.children.length > 10) {
-                messagesDiv.removeChild(messagesDiv.firstChild);
+                messagesDiv.removeChild(messagesDiv.lastChild);
             }
 
             if (!isPaused) {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                messagesDiv.scrollTop = 0;
             }
         }
 
