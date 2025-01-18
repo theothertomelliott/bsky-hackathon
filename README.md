@@ -1,14 +1,23 @@
-# BlueSky WebSocket Logger
+# Bluesky First Timers
 
-This application connects to the BlueSky websocket and logs the received data to JSONP files. The files are automatically split when they reach 100MB in size.
+A real-time web application that shows new users making their first post on Bluesky. It connects to the Bluesky firehose, monitors for new posts, and identifies users who are posting for the first time.
 
 ## Features
 
-- Connects to BlueSky's WebSocket feed
-- Saves data in JSONP format
-- Automatically splits files at 100MB
-- Handles graceful shutdown
-- Creates timestamped files
+- Real-time monitoring of the Bluesky firehose
+- Identifies users making their first post
+- Displays posts with user profile information
+- Links directly to user profiles on bsky.app
+- Filters out replies to focus on original posts
+- WebSocket-based for efficient real-time updates
+
+## Technical Details
+
+- Built with Node.js and vanilla JavaScript
+- Uses the Bluesky WebSocket firehose API
+- Implements the AT Protocol using @atproto/api
+- Batches requests to the Bluesky API for efficiency
+- Serves both HTTP (web interface) and WebSocket (real-time updates) on the same port
 
 ## Setup
 
@@ -17,18 +26,22 @@ This application connects to the BlueSky websocket and logs the received data to
 npm install
 ```
 
-2. Run the application:
+2. Start the server:
 ```bash
 npm start
 ```
 
-The application will create an `output` directory and start saving files there. Each file will be named in the format: `bsky-data-[timestamp]-[counter].jsonp`
+3. Open your browser to `http://localhost:8080`
 
-## Output Format
+## How it Works
 
-The data is saved in JSONP format, which wraps the JSON data in a callback function. Each file will contain an array of messages received from the websocket.
+1. Connects to the Bluesky firehose WebSocket
+2. Batches posts in groups of 25 for efficient API usage
+3. Queries the Bluesky API to get profile information
+4. Identifies users with a post count of 1 (first-time posters)
+5. Streams the results in real-time to connected web clients
 
-## Shutdown
+## Dependencies
 
-The application can be stopped safely by pressing Ctrl+C. It will properly close the current file and websocket connection before exiting.
-# bsky-hackathon
+- `ws`: WebSocket client and server
+- `@atproto/api`: Bluesky API client

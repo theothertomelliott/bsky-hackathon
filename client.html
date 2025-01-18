@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>First time Bluesky posters</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 5px;
+            margin: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .content {
+            margin-left: 10px;
+        }
+        #status {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .connected {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .disconnected {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>First time Bluesky posters</h1>
+    <div id="status" class="disconnected">Disconnected</div>
+    <div id="messages"></div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const statusDiv = document.getElementById('status');
+        let ws;
+
+        function connect() {
+            // Use the same host as the page, but with ws:// protocol
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function() {
+                statusDiv.textContent = 'Connected';
+                statusDiv.className = 'connected';
+            };
+
+            ws.onclose = function() {
+                statusDiv.textContent = 'Disconnected - Attempting to reconnect...';
+                statusDiv.className = 'disconnected';
+                // Try to reconnect after 3 seconds
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onmessage = function(event) {
+                const d = JSON.parse(event.data);
+                const handle = d.profile.handle;
+                const displayName = d.profile.displayName;
+                const text = d.post.commit.record.text;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `
+                    <span class="handle">
+                        <a target="_blank" href="https://bsky.app/profile/${handle}">${displayName} (@${handle})</a>
+                    </span>
+                    <br>
+                    <span class="content">${text}</span>
+                `;
+                messagesDiv.appendChild(messageDiv);
+                
+                // Auto-scroll to bottom
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                // Keep only the last 10 messages
+                while (messagesDiv.children.length > 10) {
+                    messagesDiv.removeChild(messagesDiv.firstChild);
+                }
+            };
+        }
+
+        // Initial connection
+        connect();
+    </script>
+</body>
+</html>

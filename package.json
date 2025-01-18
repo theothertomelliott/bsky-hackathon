@@ -1,0 +1,13 @@
+{
+  "name": "bsky-first-timers",
+  "version": "1.0.0",
+  "description": "A service to show first time Bluesky posters",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
