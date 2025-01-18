@@ -293,7 +293,7 @@
             const handle = d.profile.handle;
             const displayName = d.profile.displayName;
             const text = d.post.commit.record.text;
-            const avatar = d.profile.avatar || 'https://bsky.app/static/default-avatar.png'; // fallback avatar
+            const avatar = d.profile.avatar;
             const rkey = d.post.commit.rkey;
 
             const messageDiv = document.createElement('div');
@@ -303,7 +303,7 @@
             
             messageDiv.innerHTML = `
                 <div class="message-header">
-                    <img class="avatar" src="${avatar}" alt="${displayName}'s avatar" onerror="this.src='https://bsky.app/static/default-avatar.png'">
+                    <img class="avatar" src="${avatar}" alt="${displayName}'s avatar"'">
                     <div class="user-info">
                         <a class="display-name" target="_blank" href="https://bsky.app/profile/${handle}">${displayName}</a>
                         <br>
