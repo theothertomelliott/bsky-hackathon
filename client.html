@@ -48,6 +48,35 @@
     <h1>First time Bluesky posters</h1>
     <div id="status" class="disconnected">Disconnected</div>
     <div id="messages"></div>
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
+        <h2>Working with the stream</h2>
+        <p>
+            The data you see on this page can be accessed via WebSocket at <code><script>document.write('ws://' + window.location.hostname + (window.location.port ? `:${window.location.port}` : ''))</script></code>. 
+        </p>
+        <p>
+            The WebSocket outputs in the following format:
+        </p>
+        <pre>
+            {
+                "did": "did:plc:...",
+                "profile": {
+                    "did": "did:plc:...",
+                    "handle": "username.bsky.social",
+                    "displayName": "User's display name",
+                    "avatar": "https://cdn.bsky.app/img/avatar/..."
+                },
+                "post": {
+                    "$type": "app.bsky.feed.post",
+                    "createdAt": "2025-01-18T15:44:54.654Z",
+                    "langs": ["en"],
+                    "text": "User's post text"
+                }
+            }
+        </pre>
+        <p>
+            The <code>did</code> and <code>post</code> fields are obtained from <a href="https://github.com/bluesky-social/jetstream">Jetstream</a> and the <code>profile</code> field is obtained from the <a href="https://atproto.com/">AT Protocol</a>.
+        </p>
+    </div>
 
     <script>
         const messagesDiv = document.getElementById('messages');
