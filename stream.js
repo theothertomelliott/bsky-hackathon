@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 
 export function streamFirehose(on_message) {
     // Connect to the WebSocket
-    const ws = new WebSocket('wss://jetstream2.us-east.bsky.network/subscribe?wantedCollections=app.bsky.feed.post');
+    const ws = new WebSocket('wss://jetstream1.us-east.bsky.network/subscribe?wantedCollections=app.bsky.feed.post');
 
     ws.on('open', function open() {
         console.log('Connected to BlueSky WebSocket');

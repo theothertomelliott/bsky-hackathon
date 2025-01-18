@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>First time Bluesky posters</title>
     <style>
         body {
@@ -8,31 +9,72 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
         }
         #messages {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 400px;
-            overflow-y: auto;
             margin-bottom: 20px;
-            background-color: #f9f9f9;
         }
         .message {
-            padding: 5px;
-            margin: 5px 0;
-            border-bottom: 1px solid #eee;
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .timestamp {
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+        .user-info {
+            flex-grow: 1;
+        }
+        .display-name {
+            font-weight: bold;
+            color: #1a1a1a;
+            text-decoration: none;
+        }
+        .handle {
             color: #666;
             font-size: 0.9em;
+            text-decoration: none;
+        }
+        .handle:hover, .display-name:hover {
+            text-decoration: underline;
         }
         .content {
-            margin-left: 10px;
+            color: #1a1a1a;
+            line-height: 1.4;
+            margin-left: 60px;
+            margin-bottom: 12px;
+        }
+        .post-link {
+            margin-left: 60px;
+            font-size: 0.9em;
+        }
+        .post-link a {
+            color: #666;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .post-link a:hover {
+            color: #1a1a1a;
+            text-decoration: underline;
         }
         #status {
-            padding: 10px;
+            padding: 5px 10px;
             margin-bottom: 20px;
-            border-radius: 4px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 0.9em;
         }
         .connected {
             background-color: #dff0d8;
@@ -42,12 +84,53 @@
             background-color: #f2dede;
             color: #a94442;
         }
+        #controls {
+            margin-bottom: 10px;
+        }
+        #pause-button {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        #message-counter {
+            margin-left: 10px;
+            display: none;
+        }
+        #stats {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: none;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        .stat-item {
+            display: inline-block;
+        }
+        .stat-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>First time Bluesky posters</h1>
-    <div id="status" class="disconnected">Disconnected</div>
+    <div class="header-container">
+        <h1>First time Bluesky posters</h1>
+        <div id="status" class="disconnected">⬤ Disconnected</div>
+    </div>
+    <div id="stats"></div>
     <div id="messages"></div>
+    <div id="controls">
+        <button id="pause-button">Pause</button>
+        <span id="message-counter"></span>
+    </div>
     <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
         <h2>Working with the stream</h2>
         <p>
@@ -81,7 +164,103 @@
     <script>
         const messagesDiv = document.getElementById('messages');
         const statusDiv = document.getElementById('status');
+        const pauseButton = document.getElementById('pause-button');
+        const messageCounter = document.getElementById('message-counter');
+        const statsDiv = document.getElementById('stats');
         let ws;
+        let isPaused = false;
+        let messageCount = 0;
+        let messageQueue = [];
+        let totalFirstTimers = 0;
+        let startTime = Date.now();
+
+        function formatElapsedTime(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            
+            if (hours > 0) {
+                return `${hours} hour${hours === 1 ? '' : 's'}`;
+            } else if (minutes > 0) {
+                return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+            } else {
+                return `${seconds} second${seconds === 1 ? '' : 's'}`;
+            }
+        }
+
+        function updateStats() {
+            if (totalFirstTimers > 0) {
+                const elapsed = formatElapsedTime(Date.now() - startTime);
+                statsDiv.textContent = `${totalFirstTimers} ${totalFirstTimers === 1 ? 'person has' : 'people have'} posted for the first time in the last ${elapsed}!`;
+                statsDiv.style.display = 'block';
+            }
+        }
+
+        // Update the stats every second
+        setInterval(updateStats, 1000);
+
+        // Update the elapsed time every second
+        setInterval(function() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            // timeElapsed.textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        pauseButton.addEventListener('click', function() {
+            isPaused = !isPaused;
+            pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
+            messageCounter.style.display = isPaused ? 'inline' : 'none';
+            
+            if (!isPaused && messageQueue.length > 0) {
+                // Add all queued messages
+                messageQueue.forEach(addMessageToFeed);
+                // Clear the queue and counter
+                messageQueue = [];
+                messageCount = 0;
+                messageCounter.textContent = '';
+                // Scroll to bottom after adding all messages
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        });
+
+        function addMessageToFeed(d) {
+            const handle = d.profile.handle;
+            const displayName = d.profile.displayName;
+            const text = d.post.commit.record.text;
+            const avatar = d.profile.avatar || 'https://bsky.app/static/default-avatar.png'; // fallback avatar
+            const rkey = d.post.commit.rkey;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <img class="avatar" src="${avatar}" alt="${displayName}'s avatar" onerror="this.src='https://bsky.app/static/default-avatar.png'">
+                    <div class="user-info">
+                        <a class="display-name" target="_blank" href="https://bsky.app/profile/${handle}">${displayName}</a>
+                        <br>
+                        <a class="handle" target="_blank" href="https://bsky.app/profile/${handle}">@${handle}</a>
+                    </div>
+                </div>
+                <div class="content">${text}</div>
+                <div class="post-link">
+                    <a href="https://bsky.app/profile/${handle}/post/${rkey}" target="_blank">
+                        View on Bluesky
+                    </a>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            
+            // Keep only the last 10 messages
+            while (messagesDiv.children.length > 10) {
+                messagesDiv.removeChild(messagesDiv.firstChild);
+            }
+
+            if (!isPaused) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
 
         function connect() {
             // Use the same host as the page, but with ws:// protocol
@@ -90,12 +269,12 @@
             ws = new WebSocket(wsUrl);
 
             ws.onopen = function() {
-                statusDiv.textContent = 'Connected';
+                statusDiv.textContent = '⬤ Connected';
                 statusDiv.className = 'connected';
             };
 
             ws.onclose = function() {
-                statusDiv.textContent = 'Disconnected - Attempting to reconnect...';
+                statusDiv.textContent = '⬤ Disconnected';
                 statusDiv.className = 'disconnected';
                 // Try to reconnect after 3 seconds
                 setTimeout(connect, 3000);
@@ -107,27 +286,19 @@
 
             ws.onmessage = function(event) {
                 const d = JSON.parse(event.data);
-                const handle = d.profile.handle;
-                const displayName = d.profile.displayName;
-                const text = d.post.commit.record.text;
-
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message';
-                messageDiv.innerHTML = `
-                    <span class="handle">
-                        <a target="_blank" href="https://bsky.app/profile/${handle}">${displayName} (@${handle})</a>
-                    </span>
-                    <br>
-                    <span class="content">${text}</span>
-                `;
-                messagesDiv.appendChild(messageDiv);
                 
-                // Auto-scroll to bottom
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-                // Keep only the last 10 messages
-                while (messagesDiv.children.length > 10) {
-                    messagesDiv.removeChild(messagesDiv.firstChild);
+                // Increment first timer count and update stats
+                totalFirstTimers++;
+                updateStats();
+                
+                if (isPaused) {
+                    // Queue the message and update counter
+                    messageQueue.push(d);
+                    messageCount++;
+                    messageCounter.textContent = `${messageCount} new message${messageCount === 1 ? '' : 's'}`;
+                } else {
+                    // Add message directly to feed
+                    addMessageToFeed(d);
                 }
             };
         }
