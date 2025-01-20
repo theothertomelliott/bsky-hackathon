@@ -41,7 +41,7 @@ import websockets
 BLUESKY_USERNAME = 'welcomewagon.bsky.social'
 BLUESKY_PASSWORD = 'yourpassword'
 DEBUG_MODE = False
-WEBSOCKET_URL = 'wss://bsky-firsttimers-test.onrender.com'
+WEBSOCKET_URL = 'wss://first-time-skeeters.onrender.com/'
 
 # OpenAI configuration
 OPENAI_API_KEY = 'yourkeys'
