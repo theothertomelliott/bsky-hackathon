@@ -1,4 +1,4 @@
-# Bluesky First Timers
+# First Time Skeeters
 
 A real-time web application that shows new users making their first post on Bluesky. It connects to the Bluesky firehose, monitors for new posts, and identifies users who are posting for the first time.
 
